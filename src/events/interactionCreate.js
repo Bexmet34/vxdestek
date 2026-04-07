@@ -35,6 +35,14 @@ module.exports = {
         const supportRoleId = process.env.SUPPORT_TEAM_ROLE_ID;
 
         try {
+          // Bir kişinin zaten açık bir ticketi olup olmadığını kontrol etme
+          const channelName = `ticket-${interaction.user.username}`.toLowerCase().substring(0, 32);
+          const existingChannel = interaction.guild.channels.cache.find(c => c.name === channelName && c.parentId === ticketCategoryId);
+
+          if (existingChannel) {
+            return await interaction.reply({ content: `Zaten açık bir destek talebiniz mevcut: <#${existingChannel.id}>. Lütfen yenisini açmadan önce mevcut talebi kullanın.`, flags: [MessageFlags.Ephemeral] });
+          }
+
           const categoryMapping = {
             'genel_destek': 'General Support',
             'bot_kurulum': 'Bot Installation',
@@ -43,10 +51,9 @@ module.exports = {
             'oneri_geribildirim': 'Suggestion / Feedback',
             'partnerlik': 'Partnership / Business'
           };
-
+// ... (rest of creation logic remains similar)
           const categoryLabel = categoryMapping[category] || 'General Inquiry';
 
-          const channelName = `ticket-${interaction.user.username}`.toLowerCase().substring(0, 32);
           const channel = await interaction.guild.channels.create({
             name: channelName,
             type: ChannelType.GuildText,
@@ -99,7 +106,14 @@ module.exports = {
     // Button and Modal handling (Updated to include close_ticket)
     if (interaction.isButton()) {
       if (interaction.customId === 'close_ticket') {
-        await interaction.reply('This ticket will be closed in 5 seconds...');
+        const supportRoleId = process.env.SUPPORT_TEAM_ROLE_ID;
+        const isStaff = interaction.member.roles.cache.has(supportRoleId) || interaction.member.permissions.has('Administrator');
+
+        if (!isStaff) {
+            return await interaction.reply({ content: 'Üzgünüm, talepleri sadece yetkili ekip kapatabilir.', flags: [MessageFlags.Ephemeral] });
+        }
+
+        await interaction.reply('Bu talep 5 saniye içinde kapatılacaktır...');
         setTimeout(async () => {
           try {
             await interaction.channel.delete();
