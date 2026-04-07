@@ -40,7 +40,7 @@ module.exports = {
           const existingChannel = interaction.guild.channels.cache.find(c => c.name === channelName && c.parentId === ticketCategoryId);
 
           if (existingChannel) {
-            return await interaction.reply({ content: `Zaten açık bir destek talebiniz mevcut: <#${existingChannel.id}>. Lütfen yenisini açmadan önce mevcut talebi kullanın.`, flags: [MessageFlags.Ephemeral] });
+            return await interaction.reply({ content: `You already have an open support ticket: <#${existingChannel.id}>. Please use your existing ticket before opening a new one.`, flags: [MessageFlags.Ephemeral] });
           }
 
           const categoryMapping = {
@@ -110,10 +110,10 @@ module.exports = {
         const isStaff = interaction.member.roles.cache.has(supportRoleId) || interaction.member.permissions.has('Administrator');
 
         if (!isStaff) {
-            return await interaction.reply({ content: 'Üzgünüm, talepleri sadece yetkili ekip kapatabilir.', flags: [MessageFlags.Ephemeral] });
+            return await interaction.reply({ content: 'Sorry, only staff members can close support tickets.', flags: [MessageFlags.Ephemeral] });
         }
 
-        await interaction.reply('Bu talep 5 saniye içinde kapatılacaktır...');
+        await interaction.reply('This ticket will be closed in 5 seconds...');
         setTimeout(async () => {
           try {
             await interaction.channel.delete();
